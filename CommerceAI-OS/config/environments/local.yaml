@@ -1,0 +1,14 @@
+# Local environment overlay (non-secret)
+
+app_env: local
+log_level: debug
+log_format: pretty
+tenancy_enforcement: true
+cors_origins:
+  - http://localhost:3001
+  - http://localhost:3002
+database:
+  ssl: false
+  pool_min: 1
+  pool_max: 5
+feature_flag_source: config/feature-flags/default.yaml

@@ -1,0 +1,23 @@
+# CommerceAI OS — Default feature flags (safe defaults)
+# Override per environment; never put secrets here.
+
+version: 1
+flags:
+  FEATURE_AI_WRITES_ENABLED:
+    default: false
+    description: "Allow AI-initiated marketplace mutations after approvals path exists"
+  FEATURE_AI_ASSISTANT_ENABLED:
+    default: false
+    description: "Expose AI assistant UI/API when implemented"
+  FEATURE_EBAY_SYNC_ENABLED:
+    default: false
+    description: "Enable eBay sync workers when implemented"
+  FEATURE_BILLING_ENABLED:
+    default: false
+    description: "Enable subscription billing flows"
+  FEATURE_MULTI_CHANNEL_UI:
+    default: false
+    description: "Show multi-marketplace channel switcher"
+  FEATURE_PLUGIN_RUNTIME:
+    default: false
+    description: "Load external/optional plugins via registry"

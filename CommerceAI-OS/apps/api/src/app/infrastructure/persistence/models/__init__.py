@@ -1,0 +1,63 @@
+"""ORM models — identity + tenancy packages."""
+
+from app.infrastructure.persistence.models.identity import (
+    LoginHistoryModel,
+    OAuthAccountModel,
+    PermissionModel,
+    RefreshTokenModel,
+    RoleModel,
+    RolePermissionModel,
+    SecurityEventModel,
+    UserModel,
+    UserRoleModel,
+    UserSessionModel,
+)
+from app.infrastructure.persistence.models.tenancy import (
+    OrganizationModel,
+    OrganizationSettingsModel,
+    TenantAuditModel,
+    UserProfileModel,
+    WorkspaceInvitationModel,
+    WorkspaceMembershipModel,
+    WorkspaceModel,
+    WorkspaceSettingsModel,
+)
+from app.infrastructure.persistence.models.marketplace import (
+    MarketplaceApiLogModel,
+    MarketplaceConnectionModel,
+    MarketplaceCredentialModel,
+    MarketplaceOAuthStateModel,
+    MarketplaceOAuthTokenModel,
+    MarketplaceSyncHistoryModel,
+    MarketplaceTokenRefreshHistoryModel,
+    MarketplaceWebhookEventModel,
+)
+
+__all__ = [
+    "LoginHistoryModel",
+    "OAuthAccountModel",
+    "PermissionModel",
+    "RefreshTokenModel",
+    "RoleModel",
+    "RolePermissionModel",
+    "SecurityEventModel",
+    "UserModel",
+    "UserRoleModel",
+    "UserSessionModel",
+    "OrganizationModel",
+    "OrganizationSettingsModel",
+    "WorkspaceModel",
+    "WorkspaceMembershipModel",
+    "WorkspaceInvitationModel",
+    "UserProfileModel",
+    "WorkspaceSettingsModel",
+    "TenantAuditModel",
+    "MarketplaceConnectionModel",
+    "MarketplaceOAuthTokenModel",
+    "MarketplaceCredentialModel",
+    "MarketplaceOAuthStateModel",
+    "MarketplaceTokenRefreshHistoryModel",
+    "MarketplaceSyncHistoryModel",
+    "MarketplaceApiLogModel",
+    "MarketplaceWebhookEventModel",
+]

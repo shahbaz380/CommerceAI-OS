@@ -1,0 +1,67 @@
+# CommerceAI OS — Continuous Integration (foundation)
+# No application build yet: structure, docs, and secret hygiene gates.
+# Expand with lint/test/build jobs as apps are implemented.
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  foundation-checks:
+    name: Foundation checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify required foundation files exist
+        run: |
+          set -euo pipefail
+          required=(
+            "README.md"
+            ".gitignore"
+            ".editorconfig"
+            ".env.example"
+            "docs/standards/DEVELOPMENT_STANDARDS.md"
+            "docs/architecture/REPOSITORY_STRUCTURE.md"
+            "docs/developer/GETTING_STARTED.md"
+          )
+          for f in "${required[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "Missing required file: $f"
+              exit 1
+            fi
+            echo "OK $f"
+          done
+
+      - name: Block obvious secret file patterns in tree
+        run: |
+          set -euo pipefail
+          # Fail if tracked-like secret filenames appear outside templates
+          if find . -type f \( -name '.env' -o -name '*.pem' -o -name 'id_rsa' \) \
+            ! -path './.git/*' \
+            ! -name '.env.example' \
+            ! -name '.env.*.example' | grep -q .; then
+            echo "Potential secret files detected:"
+            find . -type f \( -name '.env' -o -name '*.pem' -o -name 'id_rsa' \) \
+              ! -path './.git/*' \
+              ! -name '.env.example' \
+              ! -name '.env.*.example'
+            exit 1
+          fi
+          echo "No obvious secret files found."
+
+      - name: Ensure monorepo top-level folders exist
+        run: |
+          set -euo pipefail
+          for d in apps packages services ai plugins database infrastructure deploy config security scripts tests monitoring docs .github; do
+            test -d "$d" || { echo "Missing directory: $d"; exit 1; }
+            echo "OK dir $d"
+          done

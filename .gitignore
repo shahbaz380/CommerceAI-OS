@@ -1,0 +1,122 @@
+# =============================================================================
+# CommerceAI OS — Root .gitignore
+# Enterprise monorepo — keep secrets, deps, and build output out of VCS
+# =============================================================================
+
+# --- Dependencies ---
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+vendor/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.egg-info/
+.eggs/
+dist/
+*.egg
+
+# --- Build / output ---
+build/artifacts/*
+!build/artifacts/.gitkeep
+build/reports/*
+!build/reports/.gitkeep
+coverage/*
+!coverage/.gitkeep
+.turbo/
+.next/
+.nuxt/
+.output/
+out/
+*.tsbuildinfo
+*.js.map
+*.d.ts.map
+
+# --- Environment & secrets (NEVER commit real secrets) ---
+.env
+.env.*
+!.env.example
+!.env.*.example
+secrets/**/*
+!secrets/templates/**
+!secrets/policies/**
+!secrets/**/.gitkeep
+*.pem
+*.key
+!security/certificates/**/.gitkeep
+!security/keys/**/.gitkeep
+id_rsa*
+*.p12
+*.pfx
+
+# --- Logs ---
+logs/**/*.log
+logs/**/*.jsonl
+!logs/**/.gitkeep
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- IDE / OS ---
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.project
+.classpath
+.settings/
+
+# --- Test / temp ---
+tmp/*
+!tmp/.gitkeep
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.nyc_output/
+playwright-report/
+test-results/
+blob-report/
+
+# --- Infrastructure local state ---
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# --- Docker / local volumes ---
+.docker-data/
+
+# --- AI local artifacts (evaluations may produce large files) ---
+ai/logs/**/*
+!ai/logs/**/.gitkeep
+ai/evaluation/datasets/**/private/
+*.gguf
+*.onnx
+
+# --- Database local dumps ---
+database/scripts/*.dump
+database/scripts/*.sql.gz
+*.sqlite
+*.db
+
+# --- Misc ---
+*.local
+sandbox/**/data/
+!sandbox/**/.gitkeep
+.vercel
+.serverless/
+.aws-sam/
