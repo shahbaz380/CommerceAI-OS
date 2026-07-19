@@ -5,6 +5,12 @@ from __future__ import annotations
 from enum import StrEnum
 
 
+class InventoryStatus(StrEnum):
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    ARCHIVED = "archived"
+
+
 class InventoryItemStatus(StrEnum):
     DRAFT = "draft"
     READY = "ready"
@@ -20,6 +26,42 @@ class InventorySyncStatus(StrEnum):
     SYNCED = "synced"
     ERROR = "error"
     DELETED_REMOTE = "deleted_remote"
+
+
+class MovementType(StrEnum):
+    RECEIPT = "receipt"
+    ADJUSTMENT = "adjustment"
+    RESERVATION = "reservation"
+    RELEASE = "release"
+    TRANSFER = "transfer"
+    CYCLE_COUNT = "cycle_count"
+
+
+class ReservationStatus(StrEnum):
+    ACTIVE = "active"
+    RELEASED = "released"
+    CANCELLED = "cancelled"
+    EXPIRED = "expired"
+
+
+class WarehouseType(StrEnum):
+    WAREHOUSE = "warehouse"
+    DISTRIBUTION_CENTER = "distribution_center"
+    STORE = "store"
+
+
+class AdjustmentReason(StrEnum):
+    MANUAL = "manual"
+    CYCLE_COUNT = "cycle_count"
+    DAMAGED = "damaged"
+    LOST = "lost"
+    RETURN = "return"
+
+
+class StockState(StrEnum):
+    HEALTHY = "healthy"
+    LOW = "low"
+    OUT_OF_STOCK = "out_of_stock"
 
 
 class InventoryCondition(StrEnum):

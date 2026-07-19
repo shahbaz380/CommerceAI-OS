@@ -11,6 +11,7 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Numeric,
     String,
@@ -132,7 +133,7 @@ class InventorySyncHistoryModel(Base):
     )
     marketplace_connection_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), nullable=True, index=True)
     channel: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
-    operation: Mapped[str] = mapped_column(String(64), nullable=False)  # push|pull|delete|bulk_push
+    operation: Mapped[str] = mapped_column(String(64), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     request_summary: Mapped[dict[str, Any] | None] = mapped_column(JSONType, nullable=True)
     response_summary: Mapped[dict[str, Any] | None] = mapped_column(JSONType, nullable=True)
@@ -182,7 +183,7 @@ class InventoryStatusHistoryModel(Base):
 
 
 class InventoryMarketplaceMetadataModel(SoftDeleteModel, TenantOwnedMixin):
-    """Provider-specific metadata bag per inventory item (eBay locale, package type, etc.)."""
+    """Provider-specific metadata bag per inventory item."""
 
     __tablename__ = "inventory_marketplace_metadata"
     __table_args__ = (
@@ -202,3 +203,164 @@ class InventoryMarketplaceMetadataModel(SoftDeleteModel, TenantOwnedMixin):
     package_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
     payload_overrides: Mapped[dict[str, Any] | None] = mapped_column(JSONType, nullable=True)
     metadata_json: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSONType, nullable=True)
+
+
+class InventoryModel(SoftDeleteModel, TenantOwnedMixin, AuditUserMixin, VersionMixin):
+    __tablename__ = "inventory"
+    __table_args__ = (
+        UniqueConstraint("workspace_id", "sku", name="uq_inventory_workspace_sku"),
+        Index("ix_inventory_tenant_workspace_sku", "tenant_id", "workspace_id", "sku"),
+        Index("ix_inventory_status_updated", "status", "updated_at"),
+    )
+    __mapper_args__ = {"version_id_col": VersionMixin.version}
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, index=True)
+    organization_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, index=True)
+    product_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), ForeignKey("products.id", ondelete="SET NULL"), nullable=True, index=True)
+    warehouse_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), ForeignKey("warehouses.id", ondelete="SET NULL"), nullable=True, index=True)
+    sku: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(32), default="active", server_default="active", nullable=False, index=True)
+    available_quantity: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    reserved_quantity: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    physical_quantity: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    low_stock_threshold: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    out_of_stock_threshold: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    reorder_point: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    reorder_quantity: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    last_known_cost: Mapped[Decimal | None] = mapped_column(Numeric(12, 4), nullable=True)
+    metadata_json: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSONType, nullable=True)
+
+
+class WarehouseModel(SoftDeleteModel, TenantOwnedMixin, AuditUserMixin, VersionMixin):
+    __tablename__ = "warehouses"
+    __table_args__ = (
+        UniqueConstraint("workspace_id", "code", name="uq_warehouse_workspace_code"),
+        Index("ix_warehouse_tenant_ws_code", "tenant_id", "workspace_id", "code"),
+    )
+    __mapper_args__ = {"version_id_col": VersionMixin.version}
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, index=True)
+    organization_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, index=True)
+    code: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    warehouse_type: Mapped[str] = mapped_column(String(32), default="warehouse", server_default="warehouse", nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(32), default="active", server_default="active", nullable=False, index=True)
+    address_line1: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    country: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    capacity: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    current_utilization: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class WarehouseLocationModel(SoftDeleteModel, TenantOwnedMixin, AuditUserMixin, VersionMixin):
+    __tablename__ = "warehouse_locations"
+    __table_args__ = (
+        UniqueConstraint("workspace_id", "warehouse_id", "code", name="uq_wc_workspace_warehouse_code"),
+        Index("ix_warehouse_location_status", "status", "updated_at"),
+    )
+    __mapper_args__ = {"version_id_col": VersionMixin.version}
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, index=True)
+    organization_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, index=True)
+    warehouse_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("warehouses.id", ondelete="CASCADE"), nullable=False, index=True)
+    code: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    location_type: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    aisle: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    bin: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    status: Mapped[str] = mapped_column(String(32), default="active", server_default="active", nullable=False, index=True)
+
+
+class InventoryLevelModel(SoftDeleteModel, TenantOwnedMixin, AuditUserMixin, VersionMixin):
+    __tablename__ = "inventory_level"
+    __table_args__ = (
+        UniqueConstraint("workspace_id", "inventory_id", "warehouse_id", name="uq_inventory_level_workspace_inventory_warehouse"),
+        Index("ix_inventory_level_sku_lookup", "sku"),
+    )
+    __mapper_args__ = {"version_id_col": VersionMixin.version}
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, index=True)
+    organization_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, index=True)
+    inventory_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("inventory.id", ondelete="CASCADE"), nullable=False, index=True)
+    warehouse_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), ForeignKey("warehouses.id", ondelete="SET NULL"), nullable=True, index=True)
+    sku: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="active", server_default="active", nullable=False, index=True)
+    available_quantity: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    reserved_quantity: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    physical_quantity: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    low_stock_threshold: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    out_of_stock_threshold: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class InventoryReservationModel(SoftDeleteModel, TenantOwnedMixin, AuditUserMixin, VersionMixin):
+    __tablename__ = "inventory_reservation"
+    __table_args__ = (
+        Index("ix_inventory_reservation_tenant_workspace", "tenant_id", "workspace_id"),
+        Index("ix_inventory_reservation_status_updated", "status", "updated_at"),
+    )
+    __mapper_args__ = {"version_id_col": VersionMixin.version}
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, index=True)
+    organization_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, index=True)
+    inventory_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("inventory.id", ondelete="CASCADE"), nullable=False, index=True)
+    warehouse_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), ForeignKey("warehouses.id", ondelete="SET NULL"), nullable=True, index=True)
+    reservation_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, unique=True, index=True)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), default="active", server_default="active", nullable=False, index=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    metadata_json: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSONType, nullable=True)
+
+
+class InventoryMovementModel(SoftDeleteModel, TenantOwnedMixin, AuditUserMixin, VersionMixin):
+    __tablename__ = "inventory_movement"
+    __table_args__ = (
+        Index("ix_inventory_movement_tenant_workspace", "tenant_id", "workspace_id"),
+        Index("ix_inventory_movement_inventory", "inventory_id", "movement_type", "updated_at"),
+    )
+    __mapper_args__ = {"version_id_col": VersionMixin.version}
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, index=True)
+    organization_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, index=True)
+    inventory_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("inventory.id", ondelete="CASCADE"), nullable=False, index=True)
+    source_warehouse_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), ForeignKey("warehouses.id", ondelete="SET NULL"), nullable=True, index=True)
+    destination_warehouse_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), ForeignKey("warehouses.id", ondelete="SET NULL"), nullable=True, index=True)
+    movement_type: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    reason: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    metadata_json: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSONType, nullable=True)
+
+
+class InventoryAdjustmentModel(SoftDeleteModel, TenantOwnedMixin, AuditUserMixin, VersionMixin):
+    __tablename__ = "inventory_adjustment"
+    __table_args__ = (
+        Index("ix_inventory_adjustment_tenant_workspace", "tenant_id", "workspace_id"),
+        Index("ix_inventory_adjustment_inventory_reason", "inventory_id", "reason", "updated_at"),
+    )
+    __mapper_args__ = {"version_id_col": VersionMixin.version}
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, index=True)
+    organization_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, index=True)
+    inventory_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("inventory.id", ondelete="CASCADE"), nullable=False, index=True)
+    warehouse_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), ForeignKey("warehouses.id", ondelete="SET NULL"), nullable=True, index=True)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    adjustment_type: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    reason: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class InventorySnapshotModel(SoftDeleteModel, TenantOwnedMixin, AuditUserMixin, VersionMixin):
+    __tablename__ = "inventory_snapshot"
+    __table_args__ = (
+        Index("ix_inventory_snapshot_inventory", "inventory_id", "captured_at"),
+    )
+    __mapper_args__ = {"version_id_col": VersionMixin.version}
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, index=True)
+    organization_id: Mapped[uuid.UUID] = mapped_column(GUID(), nullable=False, index=True)
+    inventory_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("inventory.id", ondelete="CASCADE"), nullable=False, index=True)
+    warehouse_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), ForeignKey("warehouses.id", ondelete="SET NULL"), nullable=True, index=True)
+    available_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    reserved_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    physical_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    captured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+    metadata_json: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSONType, nullable=True)
+

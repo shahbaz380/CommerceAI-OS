@@ -1,5 +1,15 @@
 """Inventory domain events."""
 
+INVENTORY_CREATED = "inventory.created"
+INVENTORY_UPDATED = "inventory.updated"
+INVENTORY_RESERVED = "inventory.reserved"
+INVENTORY_RELEASED = "inventory.released"
+INVENTORY_ADJUSTED = "inventory.adjusted"
+INVENTORY_TRANSFERRED = "inventory.transferred"
+INVENTORY_LOW = "inventory.low"
+INVENTORY_OUT_OF_STOCK = "inventory.out_of_stock"
+RESERVATION_EXPIRED = "reservation.expired"
+
 INVENTORY_ITEM_CREATED = "inventory.item.created"
 INVENTORY_ITEM_UPDATED = "inventory.item.updated"
 INVENTORY_ITEM_ARCHIVED = "inventory.item.archived"

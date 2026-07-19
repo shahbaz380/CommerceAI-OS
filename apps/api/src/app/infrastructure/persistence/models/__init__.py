@@ -52,6 +52,22 @@ from app.infrastructure.persistence.models.listings import (
     ListingValidationResultModel,
     ListingVersionModel,
 )
+from app.infrastructure.persistence.models.inventory import (
+    InventoryAdjustmentModel,
+    InventoryItemMarketplaceMappingModel,
+    InventoryItemModel,
+    InventoryLevelModel,
+    InventoryMarketplaceMetadataModel,
+    InventoryModel,
+    InventoryMovementModel,
+    InventoryReservationModel,
+    InventorySnapshotModel,
+    InventoryStatusHistoryModel,
+    InventorySyncHistoryModel,
+    InventoryValidationResultModel,
+    WarehouseLocationModel,
+    WarehouseModel,
+)
 
 __all__ = [
     "LoginHistoryModel",
@@ -96,4 +112,18 @@ __all__ = [
     "ListingValidationResultModel",
     "ListingValidationIssueModel",
     "ListingStatusHistoryModel",
+    "InventoryModel",
+    "InventoryItemModel",
+    "InventoryItemMarketplaceMappingModel",
+    "InventoryLevelModel",
+    "InventoryReservationModel",
+    "InventoryMovementModel",
+    "InventoryAdjustmentModel",
+    "InventorySnapshotModel",
+    "WarehouseModel",
+    "WarehouseLocationModel",
+    "InventorySyncHistoryModel",
+    "InventoryValidationResultModel",
+    "InventoryStatusHistoryModel",
+    "InventoryMarketplaceMetadataModel",
 ]

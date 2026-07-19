@@ -9,6 +9,7 @@ from app.presentation.api.v1.routes import (
     ebay_oauth,
     health,
     identity,
+    inventory,
     listings,
     marketplaces,
     organizations,
@@ -28,3 +29,4 @@ api_v1_router.include_router(marketplaces.router)
 api_v1_router.include_router(ebay_oauth.router)
 api_v1_router.include_router(products.router)
 api_v1_router.include_router(listings.router)
+api_v1_router.include_router(inventory.router)
