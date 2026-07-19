@@ -72,10 +72,7 @@ class EbayApiGateway(BaseMarketplaceGateway):
         return resp
 
     async def commerce_identity_user(self, access_token: str) -> dict[str, Any]:
-        """Optional identity probe — used for connection validation when online.
-
-        Returns empty dict on non-JSON; raises MarketplaceError on auth failure.
-        """
+        """Identity probe — username / userId for connection metadata only."""
         resp = await self.request_with_error_translation(
             GatewayRequest(
                 method="GET",
@@ -84,3 +81,14 @@ class EbayApiGateway(BaseMarketplaceGateway):
             )
         )
         return resp.data if isinstance(resp.data, dict) else {"raw": resp.data}
+
+    async def get_user_account_summary(self, access_token: str) -> dict[str, Any]:
+        """Normalize identity payload for connection health displays."""
+        profile = await self.commerce_identity_user(access_token)
+        return {
+            "user_id": profile.get("userId") or profile.get("userAccount", {}).get("id"),
+            "username": profile.get("username") or profile.get("userAccount", {}).get("loginName"),
+            "registration_marketplace_id": profile.get("registrationMarketplaceId"),
+            "account_type": profile.get("accountType"),
+            "raw_keys": sorted(profile.keys()) if isinstance(profile, dict) else [],
+        }

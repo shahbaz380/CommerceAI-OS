@@ -62,6 +62,12 @@ class MarketplaceConnectionModel(SoftDeleteModel, TenantOwnedMixin, VersionMixin
     connected_by_user_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), ForeignKey("users.id"), nullable=True)
     connected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     disconnected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    is_default: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
+    alias: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    region: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    last_validated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_refreshed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    suspended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class MarketplaceOAuthTokenModel(TimestampedModel):
@@ -123,6 +129,8 @@ class MarketplaceOAuthStateModel(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("users.id"), nullable=False)
     redirect_uri: Mapped[str] = mapped_column(String(500), nullable=False)
     code_verifier: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    nonce: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    connection_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), nullable=True, index=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

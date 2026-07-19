@@ -24,10 +24,25 @@ class PermissionCode(StrEnum):
     WORKSPACE_MEMBER_MANAGE = "workspace.member.manage"
     WORKSPACE_BILLING = "workspace.billing"
 
-    # Future commerce (seeded codes — not enforced by business modules yet)
+    # Catalog
+    PRODUCT_READ = "product.read"
+    PRODUCT_WRITE = "product.write"
+    PRODUCT_ARCHIVE = "product.archive"
+    PRODUCT_MANAGE_VARIANTS = "product.manage_variants"
+    PRODUCT_MANAGE_MEDIA = "product.manage_media"
+    PRODUCT_MANAGE_CATEGORIES = "product.manage_categories"
+
+    # Listings
     LISTING_READ = "listing.read"
     LISTING_WRITE = "listing.write"
+    LISTING_VALIDATE = "listing.validate"
+    LISTING_APPROVE = "listing.approve"
+    LISTING_SCHEDULE = "listing.schedule"
+    LISTING_ARCHIVE = "listing.archive"
+    LISTING_TEMPLATE_MANAGE = "listing_template.manage"
     LISTING_PUBLISH = "listing.publish"
+
+    # Future commerce
     INVENTORY_READ = "inventory.read"
     INVENTORY_WRITE = "inventory.write"
     ORDER_READ = "order.read"
@@ -41,6 +56,12 @@ class PermissionCode(StrEnum):
     AI_APPROVE = "ai.approve"
     MARKETPLACE_CONNECT = "marketplace.connect"
     MARKETPLACE_SYNC = "marketplace.sync"
+    MARKETPLACE_CONNECTIONS_CREATE = "marketplace_connections:create"
+    MARKETPLACE_CONNECTIONS_READ = "marketplace_connections:read"
+    MARKETPLACE_CONNECTIONS_UPDATE = "marketplace_connections:update"
+    MARKETPLACE_CONNECTIONS_DELETE = "marketplace_connections:delete"
+    MARKETPLACE_CONNECTIONS_REFRESH = "marketplace_connections:refresh"
+    MARKETPLACE_CONNECTIONS_VALIDATE = "marketplace_connections:validate"
 
 
 # code -> (module, description)
@@ -57,8 +78,19 @@ SYSTEM_PERMISSIONS: dict[str, tuple[str, str]] = {
     PermissionCode.WORKSPACE_MEMBER_INVITE: ("workspace", "Invite members"),
     PermissionCode.WORKSPACE_MEMBER_MANAGE: ("workspace", "Manage members"),
     PermissionCode.WORKSPACE_BILLING: ("workspace", "Manage billing"),
+    PermissionCode.PRODUCT_READ: ("product", "View products"),
+    PermissionCode.PRODUCT_WRITE: ("product", "Create/update products"),
+    PermissionCode.PRODUCT_ARCHIVE: ("product", "Archive products"),
+    PermissionCode.PRODUCT_MANAGE_VARIANTS: ("product", "Manage product variants"),
+    PermissionCode.PRODUCT_MANAGE_MEDIA: ("product", "Manage product media"),
+    PermissionCode.PRODUCT_MANAGE_CATEGORIES: ("product", "Manage product categories"),
     PermissionCode.LISTING_READ: ("listing", "View listings"),
     PermissionCode.LISTING_WRITE: ("listing", "Edit listings"),
+    PermissionCode.LISTING_VALIDATE: ("listing", "Validate listings"),
+    PermissionCode.LISTING_APPROVE: ("listing", "Approve listings"),
+    PermissionCode.LISTING_SCHEDULE: ("listing", "Schedule listings"),
+    PermissionCode.LISTING_ARCHIVE: ("listing", "Archive listings"),
+    PermissionCode.LISTING_TEMPLATE_MANAGE: ("listing", "Manage listing templates"),
     PermissionCode.LISTING_PUBLISH: ("listing", "Publish listings"),
     PermissionCode.INVENTORY_READ: ("inventory", "View inventory"),
     PermissionCode.INVENTORY_WRITE: ("inventory", "Edit inventory"),
@@ -73,4 +105,10 @@ SYSTEM_PERMISSIONS: dict[str, tuple[str, str]] = {
     PermissionCode.AI_APPROVE: ("ai", "Approve AI actions"),
     PermissionCode.MARKETPLACE_CONNECT: ("marketplace", "Connect channels"),
     PermissionCode.MARKETPLACE_SYNC: ("marketplace", "Trigger sync"),
+    PermissionCode.MARKETPLACE_CONNECTIONS_CREATE: ("marketplace", "Create marketplace connections"),
+    PermissionCode.MARKETPLACE_CONNECTIONS_READ: ("marketplace", "Read marketplace connections"),
+    PermissionCode.MARKETPLACE_CONNECTIONS_UPDATE: ("marketplace", "Update marketplace connections"),
+    PermissionCode.MARKETPLACE_CONNECTIONS_DELETE: ("marketplace", "Delete marketplace connections"),
+    PermissionCode.MARKETPLACE_CONNECTIONS_REFRESH: ("marketplace", "Refresh marketplace tokens"),
+    PermissionCode.MARKETPLACE_CONNECTIONS_VALIDATE: ("marketplace", "Validate marketplace connections"),
 }

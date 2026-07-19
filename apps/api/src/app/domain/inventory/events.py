@@ -1,0 +1,11 @@
+"""Inventory domain events."""
+
+INVENTORY_ITEM_CREATED = "inventory.item.created"
+INVENTORY_ITEM_UPDATED = "inventory.item.updated"
+INVENTORY_ITEM_ARCHIVED = "inventory.item.archived"
+INVENTORY_QUANTITY_ADJUSTED = "inventory.quantity.adjusted"
+INVENTORY_VALIDATED = "inventory.item.validated"
+INVENTORY_EBAY_PUSH_SUCCEEDED = "inventory.ebay.push.succeeded"
+INVENTORY_EBAY_PUSH_FAILED = "inventory.ebay.push.failed"
+INVENTORY_EBAY_DELETED = "inventory.ebay.deleted"
+INVENTORY_SYNC_RETRY = "inventory.sync.retry"

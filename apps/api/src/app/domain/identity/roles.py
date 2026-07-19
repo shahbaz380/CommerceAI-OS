@@ -44,8 +44,19 @@ def role_permission_map() -> dict[str, list[str]]:
         PermissionCode.WORKSPACE_MEMBER_INVITE,
         PermissionCode.WORKSPACE_MEMBER_MANAGE,
         PermissionCode.WORKSPACE_BILLING,
+        PermissionCode.PRODUCT_READ,
+        PermissionCode.PRODUCT_WRITE,
+        PermissionCode.PRODUCT_ARCHIVE,
+        PermissionCode.PRODUCT_MANAGE_VARIANTS,
+        PermissionCode.PRODUCT_MANAGE_MEDIA,
+        PermissionCode.PRODUCT_MANAGE_CATEGORIES,
         PermissionCode.LISTING_READ,
         PermissionCode.LISTING_WRITE,
+        PermissionCode.LISTING_VALIDATE,
+        PermissionCode.LISTING_APPROVE,
+        PermissionCode.LISTING_SCHEDULE,
+        PermissionCode.LISTING_ARCHIVE,
+        PermissionCode.LISTING_TEMPLATE_MANAGE,
         PermissionCode.LISTING_PUBLISH,
         PermissionCode.INVENTORY_READ,
         PermissionCode.INVENTORY_WRITE,
@@ -60,6 +71,12 @@ def role_permission_map() -> dict[str, list[str]]:
         PermissionCode.AI_APPROVE,
         PermissionCode.MARKETPLACE_CONNECT,
         PermissionCode.MARKETPLACE_SYNC,
+        PermissionCode.MARKETPLACE_CONNECTIONS_CREATE,
+        PermissionCode.MARKETPLACE_CONNECTIONS_READ,
+        PermissionCode.MARKETPLACE_CONNECTIONS_UPDATE,
+        PermissionCode.MARKETPLACE_CONNECTIONS_DELETE,
+        PermissionCode.MARKETPLACE_CONNECTIONS_REFRESH,
+        PermissionCode.MARKETPLACE_CONNECTIONS_VALIDATE,
     ]
 
     manager = [
@@ -68,8 +85,19 @@ def role_permission_map() -> dict[str, list[str]]:
         PermissionCode.WORKSPACE_READ,
         PermissionCode.WORKSPACE_WRITE,
         PermissionCode.WORKSPACE_MEMBER_INVITE,
+        PermissionCode.PRODUCT_READ,
+        PermissionCode.PRODUCT_WRITE,
+        PermissionCode.PRODUCT_ARCHIVE,
+        PermissionCode.PRODUCT_MANAGE_VARIANTS,
+        PermissionCode.PRODUCT_MANAGE_MEDIA,
+        PermissionCode.PRODUCT_MANAGE_CATEGORIES,
         PermissionCode.LISTING_READ,
         PermissionCode.LISTING_WRITE,
+        PermissionCode.LISTING_VALIDATE,
+        PermissionCode.LISTING_APPROVE,
+        PermissionCode.LISTING_SCHEDULE,
+        PermissionCode.LISTING_ARCHIVE,
+        PermissionCode.LISTING_TEMPLATE_MANAGE,
         PermissionCode.LISTING_PUBLISH,
         PermissionCode.INVENTORY_READ,
         PermissionCode.INVENTORY_WRITE,
@@ -83,12 +111,23 @@ def role_permission_map() -> dict[str, list[str]]:
         PermissionCode.AI_USE,
         PermissionCode.AI_APPROVE,
         PermissionCode.MARKETPLACE_SYNC,
+        PermissionCode.MARKETPLACE_CONNECTIONS_CREATE,
+        PermissionCode.MARKETPLACE_CONNECTIONS_READ,
+        PermissionCode.MARKETPLACE_CONNECTIONS_UPDATE,
+        PermissionCode.MARKETPLACE_CONNECTIONS_DELETE,
+        PermissionCode.MARKETPLACE_CONNECTIONS_REFRESH,
+        PermissionCode.MARKETPLACE_CONNECTIONS_VALIDATE,
     ]
 
     staff = [
         PermissionCode.WORKSPACE_READ,
+        PermissionCode.PRODUCT_READ,
+        PermissionCode.PRODUCT_WRITE,
+        PermissionCode.PRODUCT_MANAGE_VARIANTS,
+        PermissionCode.PRODUCT_MANAGE_MEDIA,
         PermissionCode.LISTING_READ,
         PermissionCode.LISTING_WRITE,
+        PermissionCode.LISTING_VALIDATE,
         PermissionCode.INVENTORY_READ,
         PermissionCode.INVENTORY_WRITE,
         PermissionCode.ORDER_READ,
@@ -96,6 +135,8 @@ def role_permission_map() -> dict[str, list[str]]:
         PermissionCode.SUPPORT_READ,
         PermissionCode.SUPPORT_REPLY,
         PermissionCode.AI_USE,
+        PermissionCode.MARKETPLACE_CONNECTIONS_READ,
+        PermissionCode.MARKETPLACE_CONNECTIONS_VALIDATE,
     ]
 
     support = [
@@ -108,6 +149,7 @@ def role_permission_map() -> dict[str, list[str]]:
 
     read_only = [
         PermissionCode.WORKSPACE_READ,
+        PermissionCode.PRODUCT_READ,
         PermissionCode.LISTING_READ,
         PermissionCode.INVENTORY_READ,
         PermissionCode.ORDER_READ,
@@ -115,10 +157,12 @@ def role_permission_map() -> dict[str, list[str]]:
         PermissionCode.ANALYTICS_READ,
         PermissionCode.PRICING_READ,
         PermissionCode.AI_USE,
+        PermissionCode.MARKETPLACE_CONNECTIONS_READ,
     ]
 
     ai_agent = [
         PermissionCode.AI_USE,
+        PermissionCode.PRODUCT_READ,
         PermissionCode.LISTING_READ,
         PermissionCode.INVENTORY_READ,
         PermissionCode.ORDER_READ,
@@ -127,6 +171,7 @@ def role_permission_map() -> dict[str, list[str]]:
 
     marketplace_svc = [
         PermissionCode.MARKETPLACE_SYNC,
+        PermissionCode.PRODUCT_READ,
         PermissionCode.LISTING_READ,
         PermissionCode.LISTING_WRITE,
         PermissionCode.ORDER_READ,

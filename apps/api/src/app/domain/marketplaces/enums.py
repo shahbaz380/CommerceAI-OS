@@ -27,6 +27,7 @@ class ConnectionStatus(StrEnum):
     DISCONNECTED = "disconnected"
     ERROR = "error"
     SUSPENDED = "suspended"
+    DEACTIVATED = "deactivated"
 
 
 class SyncJobStatus(StrEnum):

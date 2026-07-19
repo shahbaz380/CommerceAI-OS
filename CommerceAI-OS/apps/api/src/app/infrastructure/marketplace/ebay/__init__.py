@@ -1,1 +1,0 @@
-"""eBay marketplace adapter package."""

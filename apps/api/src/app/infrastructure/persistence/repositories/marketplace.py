@@ -60,6 +60,37 @@ class MarketplaceConnectionRepository:
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
+    async def find_by_external(
+        self, workspace_id: uuid.UUID, channel: str, external_account_id: str
+    ) -> MarketplaceConnectionModel | None:
+        stmt = select(MarketplaceConnectionModel).where(
+            MarketplaceConnectionModel.workspace_id == workspace_id,
+            MarketplaceConnectionModel.channel == channel,
+            MarketplaceConnectionModel.external_account_id == external_account_id,
+            MarketplaceConnectionModel.deleted_at.is_(None),
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_default(
+        self, workspace_id: uuid.UUID, channel: str
+    ) -> MarketplaceConnectionModel | None:
+        stmt = select(MarketplaceConnectionModel).where(
+            MarketplaceConnectionModel.workspace_id == workspace_id,
+            MarketplaceConnectionModel.channel == channel,
+            MarketplaceConnectionModel.is_default.is_(True),
+            MarketplaceConnectionModel.deleted_at.is_(None),
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def clear_default(self, workspace_id: uuid.UUID, channel: str) -> None:
+        rows = await self.list_for_workspace(workspace_id, channel=channel)
+        for row in rows:
+            if row.is_default:
+                row.is_default = False
+        await self.session.flush()
+
 
 class MarketplaceTokenRepository:
     def __init__(self, session: AsyncSession) -> None:

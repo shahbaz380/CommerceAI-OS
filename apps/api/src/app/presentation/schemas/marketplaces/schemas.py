@@ -84,11 +84,17 @@ class ConnectionResponse(BaseModel):
     external_account_id: str | None = None
     external_username: str | None = None
     scopes: str | None = None
+    is_default: bool = False
+    alias: str | None = None
+    region: str | None = None
     last_success_at: datetime | None = None
+    last_refreshed_at: datetime | None = None
+    last_validated_at: datetime | None = None
     last_error_code: str | None = None
     last_error_message: str | None = None
     connected_at: datetime | None = None
     disconnected_at: datetime | None = None
+    suspended_at: datetime | None = None
     created_at: datetime
 
 
@@ -101,6 +107,37 @@ class ConnectionHealthResponse(BaseModel):
     last_error_code: str | None = None
     validation: dict[str, Any]
     healthy: bool
+    is_default: bool | None = None
+    alias: str | None = None
+    region: str | None = None
+    external_username: str | None = None
+    last_refreshed_at: str | None = None
+    last_validated_at: str | None = None
+
+
+class AuthorizationUrlResponse(BaseModel):
+    connection_id: UUID
+    authorization_url: str
+    state: str
+    channel: str = "ebay"
+    environment: str
+    expires_in_seconds: int = 900
+
+
+class RefreshTokenResponse(BaseModel):
+    status: str
+    connection_id: str | None = None
+    expires_at: str | None = None
+    refresh_attempted: bool | None = None
+
+
+class MarketplaceStatusResponse(BaseModel):
+    workspace_id: str
+    channel: str
+    total_accounts: int
+    connected_accounts: int
+    default_connection_id: str | None = None
+    accounts: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class WebhookReceiveResponse(BaseModel):

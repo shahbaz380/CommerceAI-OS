@@ -21,6 +21,8 @@ from app.infrastructure.database.base import Base
 from app.infrastructure.persistence.models import identity as _identity_models  # noqa: F401
 from app.infrastructure.persistence.models import tenancy as _tenancy_models  # noqa: F401
 from app.infrastructure.persistence.models import marketplace as _marketplace_models  # noqa: F401
+from app.infrastructure.persistence.models import catalog as _catalog_models  # noqa: F401
+from app.infrastructure.persistence.models import listings as _listings_models  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

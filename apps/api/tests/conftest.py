@@ -37,6 +37,8 @@ async def db_engine():
     from app.infrastructure.persistence.models import identity  # noqa: F401
     from app.infrastructure.persistence.models import tenancy  # noqa: F401
     from app.infrastructure.persistence.models import marketplace  # noqa: F401
+    from app.infrastructure.persistence.models import catalog  # noqa: F401
+    from app.infrastructure.persistence.models import listings  # noqa: F401
 
     engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
     async with engine.begin() as conn:

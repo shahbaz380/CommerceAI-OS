@@ -57,10 +57,27 @@ See [docs/marketplaces/README.md](docs/marketplaces/README.md).
 - HTTP gateway with retry/rate-limit  
 - Webhook receiver foundation  
 
+## eBay OAuth account connection (Prompt 18)
+
+See [docs/marketplaces/EBAY_OAUTH_GUIDE.md](docs/marketplaces/EBAY_OAUTH_GUIDE.md).
+
+- Full authorization-code flow with secure state  
+- Redis + DB state store, refresh locking  
+- Multi-account, default account, reconnect/suspend  
+- Identity verification probe (no business APIs)  
+
+## Product catalog & listings (Prompt 17)
+
+See [docs/catalog/README.md](docs/catalog/README.md) and [docs/listings/README.md](docs/listings/README.md).
+
+- Internal product catalog (variants, SKUs, categories, media)  
+- Listing drafts, validation, templates, versioning  
+- Marketplace listing mapping placeholders (no live publish)  
+
 ## What is NOT implemented
 
-- Business tables (orders, listings, inventory, …)  
-- Business marketplace resource APIs (listings/orders sync)  
+- Live eBay listing publication  
+- Orders / inventory sync / pricing intelligence  
 - AI agent logic  
 
 ## Persistence docs

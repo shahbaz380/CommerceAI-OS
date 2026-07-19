@@ -32,6 +32,26 @@ from app.infrastructure.persistence.models.marketplace import (
     MarketplaceTokenRefreshHistoryModel,
     MarketplaceWebhookEventModel,
 )
+from app.infrastructure.persistence.models.catalog import (
+    ProductAttributeDefinitionModel,
+    ProductAttributeValueModel,
+    ProductCategoryAssignmentModel,
+    ProductCategoryModel,
+    ProductIdentifierModel,
+    ProductMediaModel,
+    ProductModel,
+    ProductVariantModel,
+)
+from app.infrastructure.persistence.models.listings import (
+    ListingContentModel,
+    ListingMarketplaceMappingModel,
+    ListingModel,
+    ListingStatusHistoryModel,
+    ListingTemplateModel,
+    ListingValidationIssueModel,
+    ListingValidationResultModel,
+    ListingVersionModel,
+)
 
 __all__ = [
     "LoginHistoryModel",
@@ -60,4 +80,20 @@ __all__ = [
     "MarketplaceSyncHistoryModel",
     "MarketplaceApiLogModel",
     "MarketplaceWebhookEventModel",
+    "ProductModel",
+    "ProductVariantModel",
+    "ProductIdentifierModel",
+    "ProductAttributeDefinitionModel",
+    "ProductAttributeValueModel",
+    "ProductCategoryModel",
+    "ProductCategoryAssignmentModel",
+    "ProductMediaModel",
+    "ListingModel",
+    "ListingContentModel",
+    "ListingTemplateModel",
+    "ListingMarketplaceMappingModel",
+    "ListingVersionModel",
+    "ListingValidationResultModel",
+    "ListingValidationIssueModel",
+    "ListingStatusHistoryModel",
 ]
