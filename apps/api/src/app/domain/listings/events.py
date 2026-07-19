@@ -1,0 +1,10 @@
+"""Listing domain event names."""
+
+LISTING_DRAFT_CREATED = "listings.draft.created"
+LISTING_UPDATED = "listings.updated"
+LISTING_VALIDATED = "listings.validated"
+LISTING_APPROVED = "listings.approved"
+LISTING_SCHEDULED = "listings.scheduled"
+LISTING_STATUS_CHANGED = "listings.status_changed"
+LISTING_ARCHIVED = "listings.archived"
+LISTING_VERSION_CREATED = "listings.version.created"

@@ -1,0 +1,11 @@
+"""Catalog domain event names."""
+
+PRODUCT_CREATED = "catalog.product.created"
+PRODUCT_UPDATED = "catalog.product.updated"
+PRODUCT_ACTIVATED = "catalog.product.activated"
+PRODUCT_DEACTIVATED = "catalog.product.deactivated"
+PRODUCT_ARCHIVED = "catalog.product.archived"
+PRODUCT_VARIANT_CREATED = "catalog.product_variant.created"
+PRODUCT_VARIANT_UPDATED = "catalog.product_variant.updated"
+PRODUCT_IMAGE_ADDED = "catalog.product_image.added"
+PRODUCT_CATEGORY_ASSIGNED = "catalog.product_category.assigned"
