@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.application.identity.authorization import Principal
 from app.application.tenancy.tenant_access import TenantAccessService
 from app.core.events.bus import DomainEvent, get_event_bus
-from app.domain.catalog.enums import CategoryStatus, IdentifierType, MediaStatus, ProductStatus
+from app.domain.catalog.enums import CategoryStatus, IdentifierType, MediaStatus, ProductStatus, ProductType
 from app.domain.catalog.events import (
     PRODUCT_ACTIVATED,
     PRODUCT_ARCHIVED,
@@ -39,6 +39,7 @@ from app.domain.catalog.lifecycle import assert_product_transition
 from app.domain.catalog.sku import auto_generate_sku, validate_sku
 from app.domain.tenancy.enums import WorkspaceRole
 from app.infrastructure.persistence.models.catalog import (
+    ProductAttributeDefinitionModel,
     ProductAttributeValueModel,
     ProductCategoryAssignmentModel,
     ProductCategoryModel,
@@ -107,6 +108,10 @@ class ProductService:
         name = name.strip()
         if len(name) < 1:
             raise ValidationAppError("Product name is required", details=[{"field": "name", "issue": "required"}])
+        product_type = fields.get("product_type")
+        if product_type is not None:
+            product_type = ProductType(product_type).value
+
         sku = None
         if default_sku:
             sku = validate_sku(default_sku)
@@ -129,7 +134,7 @@ class ProductService:
             brand=brand,
             manufacturer=fields.get("manufacturer"),
             model_number=fields.get("model_number"),
-            product_type=fields.get("product_type"),
+            product_type=product_type,
             condition=fields.get("condition") or "new",
             status=ProductStatus.DRAFT,
             default_sku=sku,
@@ -201,6 +206,8 @@ class ProductService:
             if await self.variants.get_by_sku(workspace_id, sku):
                 raise DuplicateSKUError(sku)
             product.default_sku = sku
+        if "product_type" in fields and fields["product_type"] is not None:
+            product.product_type = ProductType(fields["product_type"]).value
         for key in (
             "name",
             "internal_title",
@@ -242,6 +249,7 @@ class ProductService:
             DomainEvent(name=PRODUCT_UPDATED, workspace_id=str(workspace_id), payload={"product_id": str(product_id)})
         )
         await self.session.flush()
+        await self.session.refresh(product)
         return product
 
     async def transition_status(
@@ -267,6 +275,10 @@ class ProductService:
             product.archived_at = datetime.now(UTC)
             product.soft_delete()
             event = PRODUCT_ARCHIVED
+        elif new_status == ProductStatus.DELETED:
+            product.archived_at = datetime.now(UTC)
+            product.soft_delete()
+            event = PRODUCT_ARCHIVED
         await self.audit.add(
             event_type=f"product.status.{new_status.value}",
             message=f"Product status -> {new_status.value}",
@@ -282,6 +294,35 @@ class ProductService:
         await self.session.refresh(product)
         return product
 
+    async def restore_product(
+        self,
+        principal: Principal,
+        workspace_id: uuid.UUID,
+        product_id: uuid.UUID,
+    ) -> ProductModel:
+        await self._require_ws(principal, workspace_id)
+        product = await self.products.get_including_deleted(workspace_id, product_id)
+        if product is None:
+            raise ProductNotFoundError()
+        product.restore()
+        product.status = ProductStatus.DRAFT
+        product.archived_at = None
+        product.updated_by = principal.user_id
+        await self.audit.add(
+            event_type="product.restored",
+            message="Product restored",
+            actor_user_id=principal.user_id,
+            organization_id=product.organization_id,
+            workspace_id=workspace_id,
+            metadata={"product_id": str(product_id)},
+        )
+        await self.events.publish(
+            DomainEvent(name=PRODUCT_UPDATED, workspace_id=str(workspace_id), payload={"product_id": str(product_id)})
+        )
+        await self.session.flush()
+        await self.session.refresh(product)
+        return product
+
     async def search(
         self,
         principal: Principal,
@@ -291,7 +332,18 @@ class ProductService:
         await self._require_ws(principal, workspace_id, min_role=WorkspaceRole.READ_ONLY)
         offset = int(filters.pop("offset", 0) or 0)
         limit = int(filters.pop("limit", 50) or 50)
-        rows = list(await self.products.search(workspace_id, offset=offset, limit=limit, **filters))
+        sort_by = str(filters.pop("sort_by", "created_at") or "created_at")
+        sort_order = str(filters.pop("sort_order", "desc") or "desc")
+        rows = list(
+            await self.products.search(
+                workspace_id,
+                offset=offset,
+                limit=limit,
+                sort_by=sort_by,
+                sort_order=sort_order,
+                **filters,
+            )
+        )
         total = await self.products.count(workspace_id, **filters)
         return rows, total
 
@@ -439,6 +491,52 @@ class ProductService:
         await self.session.flush()
         return row
 
+    async def create_attribute_definition(
+        self,
+        principal: Principal,
+        workspace_id: uuid.UUID,
+        *,
+        code: str,
+        name: str,
+        data_type: str,
+        is_required: bool = False,
+        is_searchable: bool = False,
+        is_variant_defining: bool = False,
+        enum_options: list[Any] | None = None,
+        marketplace_mapping: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> ProductAttributeDefinitionModel:
+        ws, _ = await self._require_ws(principal, workspace_id, min_role=WorkspaceRole.MANAGER)
+        code_val = code.strip().lower()
+        if not code_val:
+            raise ValidationAppError("Attribute code is required", details=[{"field": "code", "issue": "required"}])
+        if await self.attributes.get_definition_by_code(workspace_id, code_val):
+            raise ValidationAppError("Attribute code exists", details=[{"field": "code", "issue": "duplicate"}])
+        row = ProductAttributeDefinitionModel(
+            workspace_id=workspace_id,
+            organization_id=ws.organization_id,
+            code=code_val,
+            name=name.strip(),
+            data_type=data_type,
+            is_required=is_required,
+            is_searchable=is_searchable,
+            is_variant_defining=is_variant_defining,
+            enum_options=enum_options,
+            marketplace_mapping=marketplace_mapping,
+            metadata_json=metadata or {},
+        )
+        await self.attributes.add_definition(row)
+        await self.session.flush()
+        return row
+
+    async def list_attribute_definitions(
+        self,
+        principal: Principal,
+        workspace_id: uuid.UUID,
+    ) -> list[ProductAttributeDefinitionModel]:
+        await self._require_ws(principal, workspace_id, min_role=WorkspaceRole.READ_ONLY)
+        return list(await self.attributes.list_definitions(workspace_id))
+
     async def add_attribute_value(
         self,
         principal: Principal,
@@ -469,6 +567,25 @@ class ProductService:
         await self.attributes.add_value(row)
         await self.session.flush()
         return row
+
+    async def assign_tags(
+        self,
+        principal: Principal,
+        workspace_id: uuid.UUID,
+        product_id: uuid.UUID,
+        *,
+        tags: list[str],
+    ) -> ProductModel:
+        await self._require_ws(principal, workspace_id)
+        product = await self.products.get(workspace_id, product_id)
+        if product is None:
+            raise ProductNotFoundError()
+        normalized = [str(tag).strip() for tag in tags if str(tag).strip()]
+        product.tags = list(dict.fromkeys(normalized))
+        product.updated_by = principal.user_id
+        await self.session.flush()
+        await self.session.refresh(product)
+        return product
 
     async def assign_category(
         self,

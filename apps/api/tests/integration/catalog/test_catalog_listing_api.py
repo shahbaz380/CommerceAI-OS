@@ -71,6 +71,29 @@ def test_product_and_listing_lifecycle(client) -> None:
     assert var.status_code == 201, var.text
     variant_id = var.json()["id"]
 
+    # attribute definition
+    attr_def = client.post(
+        "/api/v1/product-attributes",
+        headers=h,
+        json={
+            "code": "color",
+            "name": "Color",
+            "data_type": "text",
+            "is_searchable": True,
+        },
+    )
+    assert attr_def.status_code == 201, attr_def.text
+    attr_def_id = attr_def.json()["id"]
+
+    # product tags
+    tags = client.post(
+        f"/api/v1/products/{product_id}/tags",
+        headers=h,
+        json={"tags": ["wireless", "ergonomic", "wireless"]},
+    )
+    assert tags.status_code == 200, tags.text
+    assert tags.json()["tags"] == ["wireless", "ergonomic"]
+
     # media
     media = client.post(
         f"/api/v1/products/{product_id}/media",
@@ -78,6 +101,14 @@ def test_product_and_listing_lifecycle(client) -> None:
         json={"url": "https://cdn.example.com/mouse.jpg", "is_primary": True, "mime_type": "image/jpeg"},
     )
     assert media.status_code == 201, media.text
+
+    # attribute values
+    attribute = client.post(
+        f"/api/v1/products/{product_id}/attributes",
+        headers=h,
+        json={"attribute_definition_id": attr_def_id, "value_text": "black"},
+    )
+    assert attribute.status_code == 201, attribute.text
 
     # assign category
     asg = client.post(f"/api/v1/products/{product_id}/categories/{cat_id}", headers=h)
@@ -164,6 +195,23 @@ def test_duplicate_sku_conflict(client) -> None:
     assert r1.status_code == 201
     r2 = client.post("/api/v1/products", headers=h, json={"name": "B", "default_sku": "same-sku"})
     assert r2.status_code == 409
+
+
+def test_product_restore_after_archive(client) -> None:
+    headers = _auth(client, "restore@example.com")
+    ws = _workspace(client, headers, "restore-ws")
+    h = {**headers, "X-Workspace-Id": ws}
+
+    created = client.post("/api/v1/products", headers=h, json={"name": "Restore Me", "default_sku": "RESTORE-001"})
+    assert created.status_code == 201, created.text
+    product_id = created.json()["id"]
+
+    archived = client.delete(f"/api/v1/products/{product_id}", headers=h)
+    assert archived.status_code == 200, archived.text
+
+    restored = client.post(f"/api/v1/products/{product_id}/restore", headers=h)
+    assert restored.status_code == 200, restored.text
+    assert restored.json()["status"] == "draft"
 
 
 def test_invalid_listing_transition(client) -> None:

@@ -7,6 +7,7 @@ from app.domain.catalog.enums import (
     MediaStatus,
     ProductCondition,
     ProductStatus,
+    ProductType,
 )
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "MediaStatus",
     "ProductCondition",
     "ProductStatus",
+    "ProductType",
 ]

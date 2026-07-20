@@ -6,7 +6,7 @@ import uuid
 from collections.abc import Sequence
 from typing import Any
 
-from sqlalchemy import Select, func, or_, select
+from sqlalchemy import Select, asc, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.persistence.models.catalog import (
@@ -35,6 +35,14 @@ class ProductRepository:
             ProductModel.id == product_id,
             ProductModel.workspace_id == workspace_id,
             ProductModel.deleted_at.is_(None),
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_including_deleted(self, workspace_id: uuid.UUID, product_id: uuid.UUID) -> ProductModel | None:
+        stmt = select(ProductModel).where(
+            ProductModel.id == product_id,
+            ProductModel.workspace_id == workspace_id,
         )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
@@ -94,10 +102,22 @@ class ProductRepository:
         *,
         offset: int = 0,
         limit: int = 50,
+        sort_by: str = "created_at",
+        sort_order: str = "desc",
         **filters: Any,
     ) -> Sequence[ProductModel]:
         limit = max(1, min(limit, 200))
-        stmt = self._search_stmt(workspace_id, **filters).order_by(ProductModel.created_at.desc())
+        sort_map = {
+            "name": ProductModel.name,
+            "status": ProductModel.status,
+            "brand": ProductModel.brand,
+            "default_sku": ProductModel.default_sku,
+            "created_at": ProductModel.created_at,
+            "updated_at": ProductModel.updated_at,
+        }
+        sort_field = sort_map.get(sort_by, ProductModel.created_at)
+        direction = desc if str(sort_order).lower() == "desc" else asc
+        stmt = self._search_stmt(workspace_id, **filters).order_by(direction(sort_field))
         stmt = stmt.offset(max(0, offset)).limit(limit)
         result = await self.session.execute(stmt)
         return result.scalars().unique().all()
@@ -284,6 +304,25 @@ class ProductAttributeRepository:
         )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def get_definition_by_code(
+        self, workspace_id: uuid.UUID, code: str
+    ) -> ProductAttributeDefinitionModel | None:
+        stmt = select(ProductAttributeDefinitionModel).where(
+            ProductAttributeDefinitionModel.workspace_id == workspace_id,
+            ProductAttributeDefinitionModel.code == code,
+            ProductAttributeDefinitionModel.deleted_at.is_(None),
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def list_definitions(self, workspace_id: uuid.UUID) -> Sequence[ProductAttributeDefinitionModel]:
+        stmt = select(ProductAttributeDefinitionModel).where(
+            ProductAttributeDefinitionModel.workspace_id == workspace_id,
+            ProductAttributeDefinitionModel.deleted_at.is_(None),
+        )
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
 
     async def add_value(self, row: ProductAttributeValueModel) -> ProductAttributeValueModel:
         self.session.add(row)

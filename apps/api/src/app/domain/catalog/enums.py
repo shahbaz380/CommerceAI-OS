@@ -10,6 +10,14 @@ class ProductStatus(StrEnum):
     ACTIVE = "active"
     INACTIVE = "inactive"
     ARCHIVED = "archived"
+    DELETED = "deleted"
+
+
+class ProductType(StrEnum):
+    PHYSICAL = "physical"
+    DIGITAL = "digital"
+    SERVICE = "service"
+    BUNDLE = "bundle"
 
 
 class ProductCondition(StrEnum):
@@ -59,8 +67,9 @@ class CategoryStatus(StrEnum):
 
 # Valid product status transitions
 PRODUCT_TRANSITIONS: dict[ProductStatus, set[ProductStatus]] = {
-    ProductStatus.DRAFT: {ProductStatus.ACTIVE, ProductStatus.ARCHIVED},
-    ProductStatus.ACTIVE: {ProductStatus.INACTIVE, ProductStatus.ARCHIVED},
-    ProductStatus.INACTIVE: {ProductStatus.ACTIVE, ProductStatus.ARCHIVED},
-    ProductStatus.ARCHIVED: set(),
+    ProductStatus.DRAFT: {ProductStatus.ACTIVE, ProductStatus.ARCHIVED, ProductStatus.DELETED},
+    ProductStatus.ACTIVE: {ProductStatus.INACTIVE, ProductStatus.ARCHIVED, ProductStatus.DELETED},
+    ProductStatus.INACTIVE: {ProductStatus.ACTIVE, ProductStatus.ARCHIVED, ProductStatus.DELETED},
+    ProductStatus.ARCHIVED: {ProductStatus.DRAFT, ProductStatus.DELETED},
+    ProductStatus.DELETED: {ProductStatus.DRAFT},
 }

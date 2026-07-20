@@ -9,6 +9,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.domain.catalog.enums import ProductCondition, ProductStatus, ProductType
+
 
 class ProductCreate(BaseModel):
     name: str = Field(min_length=1, max_length=255)
@@ -17,8 +19,8 @@ class ProductCreate(BaseModel):
     brand: str | None = None
     manufacturer: str | None = None
     model_number: str | None = None
-    product_type: str | None = None
-    condition: str = "new"
+    product_type: ProductType | None = None
+    condition: ProductCondition = ProductCondition.NEW
     default_sku: str | None = None
     auto_sku: bool = False
     country_of_origin: str | None = Field(default=None, max_length=2)
@@ -39,8 +41,8 @@ class ProductUpdate(BaseModel):
     brand: str | None = None
     manufacturer: str | None = None
     model_number: str | None = None
-    product_type: str | None = None
-    condition: str | None = None
+    product_type: ProductType | None = None
+    condition: ProductCondition | None = None
     default_sku: str | None = None
     country_of_origin: str | None = None
     weight_value: Decimal | None = None
@@ -65,9 +67,9 @@ class ProductResponse(BaseModel):
     brand: str | None = None
     manufacturer: str | None = None
     model_number: str | None = None
-    product_type: str | None = None
-    condition: str
-    status: str
+    product_type: ProductType | None = None
+    condition: ProductCondition
+    status: ProductStatus
     default_sku: str | None = None
     country_of_origin: str | None = None
     weight_value: Decimal | None = None
@@ -104,7 +106,7 @@ class VariantCreate(BaseModel):
     dimension_unit: str | None = None
     cost_amount: Decimal | None = None
     cost_currency: str | None = None
-    status: str = "active"
+    status: ProductStatus = ProductStatus.ACTIVE
     metadata: dict[str, Any] | None = None
 
 
@@ -122,7 +124,7 @@ class VariantUpdate(BaseModel):
     dimension_unit: str | None = None
     cost_amount: Decimal | None = None
     cost_currency: str | None = None
-    status: str | None = None
+    status: ProductStatus | None = None
     metadata: dict[str, Any] | None = None
 
 
@@ -137,7 +139,7 @@ class VariantResponse(BaseModel):
     option_values: dict[str, Any] | None = None
     barcode: str | None = None
     mpn: str | None = None
-    status: str
+    status: ProductStatus
     cost_amount: Decimal | None = None
     cost_currency: str | None = None
     created_at: datetime
@@ -157,6 +159,35 @@ class IdentifierResponse(BaseModel):
     variant_id: UUID | None = None
     identifier_type: str
     value: str
+
+
+class AttributeDefinitionCreate(BaseModel):
+    code: str = Field(min_length=1, max_length=64)
+    name: str = Field(min_length=1, max_length=120)
+    data_type: str = Field(default="text")
+    is_required: bool = False
+    is_searchable: bool = False
+    is_variant_defining: bool = False
+    enum_options: list[str] | None = None
+    marketplace_mapping: dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None
+
+
+class AttributeDefinitionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    workspace_id: UUID
+    organization_id: UUID
+    code: str
+    name: str
+    data_type: str
+    is_required: bool
+    is_searchable: bool
+    is_variant_defining: bool
+    enum_options: list[Any] | None = None
+    marketplace_mapping: dict[str, Any] | None = None
+    metadata_json: dict[str, Any] | None = Field(default=None, validation_alias="metadata_json")
 
 
 class AttributeValueCreate(BaseModel):

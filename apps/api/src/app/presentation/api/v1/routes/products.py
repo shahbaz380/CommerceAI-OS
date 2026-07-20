@@ -13,6 +13,8 @@ from app.application.identity.authorization import Principal
 from app.presentation.api.deps.auth import get_current_principal
 from app.presentation.api.deps.common import get_db_session
 from app.presentation.schemas.catalog.schemas import (
+    AttributeDefinitionCreate,
+    AttributeDefinitionResponse,
     AttributeValueCreate,
     CategoryCreate,
     CategoryResponse,
@@ -84,6 +86,8 @@ async def list_products(
     sku: str | None = None,
     q: str | None = None,
     category_id: UUID | None = None,
+    sort_by: str = Query(default="created_at", pattern="^(name|status|brand|default_sku|created_at|updated_at)$"),
+    sort_order: str = Query(default="desc", pattern="^(asc|desc)$"),
 ) -> ProductListResponse:
     ws = _require_workspace(x_workspace_id)
     rows, total = await svc.search(
@@ -97,6 +101,8 @@ async def list_products(
         sku=sku,
         q=q,
         category_id=category_id,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
     return ProductListResponse(
         items=[ProductResponse.model_validate(r) for r in rows],
@@ -165,6 +171,18 @@ async def archive_product(
     ws = _require_workspace(x_workspace_id)
     await svc.transition_status(principal, ws, product_id, "archived")
     return MessageResponse(message="Product archived")
+
+
+@router.post("/products/{product_id}/restore", response_model=ProductResponse)
+async def restore_product(
+    product_id: UUID,
+    principal: Annotated[Principal, Depends(get_current_principal)],
+    svc: Annotated[ProductService, Depends(_product_service)],
+    x_workspace_id: Annotated[str | None, Header(alias="X-Workspace-Id")] = None,
+) -> ProductResponse:
+    ws = _require_workspace(x_workspace_id)
+    product = await svc.restore_product(principal, ws, product_id)
+    return ProductResponse.model_validate(product)
 
 
 @router.post(
@@ -248,6 +266,20 @@ async def add_attribute(
     return {"id": str(row.id), "product_id": str(product_id)}
 
 
+@router.post("/products/{product_id}/tags", response_model=ProductResponse)
+async def assign_tags(
+    product_id: UUID,
+    body: dict[str, Any],
+    principal: Annotated[Principal, Depends(get_current_principal)],
+    svc: Annotated[ProductService, Depends(_product_service)],
+    x_workspace_id: Annotated[str | None, Header(alias="X-Workspace-Id")] = None,
+) -> ProductResponse:
+    ws = _require_workspace(x_workspace_id)
+    tags = body.get("tags", [])
+    product = await svc.assign_tags(principal, ws, product_id, tags=tags)
+    return ProductResponse.model_validate(product)
+
+
 @router.post(
     "/products/{product_id}/categories/{category_id}",
     status_code=status.HTTP_201_CREATED,
@@ -294,6 +326,41 @@ async def reorder_media(
     ws = _require_workspace(x_workspace_id)
     rows = await svc.reorder_media(principal, ws, product_id, body.ordered_ids)
     return [MediaResponse.model_validate(r) for r in rows]
+
+
+@router.post("/product-attributes", response_model=AttributeDefinitionResponse, status_code=status.HTTP_201_CREATED)
+async def create_attribute_definition(
+    body: AttributeDefinitionCreate,
+    principal: Annotated[Principal, Depends(get_current_principal)],
+    svc: Annotated[ProductService, Depends(_product_service)],
+    x_workspace_id: Annotated[str | None, Header(alias="X-Workspace-Id")] = None,
+) -> AttributeDefinitionResponse:
+    ws = _require_workspace(x_workspace_id)
+    row = await svc.create_attribute_definition(
+        principal,
+        ws,
+        code=body.code,
+        name=body.name,
+        data_type=body.data_type,
+        is_required=body.is_required,
+        is_searchable=body.is_searchable,
+        is_variant_defining=body.is_variant_defining,
+        enum_options=body.enum_options,
+        marketplace_mapping=body.marketplace_mapping,
+        metadata=body.metadata,
+    )
+    return AttributeDefinitionResponse.model_validate(row)
+
+
+@router.get("/product-attributes", response_model=list[AttributeDefinitionResponse])
+async def list_attribute_definitions(
+    principal: Annotated[Principal, Depends(get_current_principal)],
+    svc: Annotated[ProductService, Depends(_product_service)],
+    x_workspace_id: Annotated[str | None, Header(alias="X-Workspace-Id")] = None,
+) -> list[AttributeDefinitionResponse]:
+    ws = _require_workspace(x_workspace_id)
+    rows = await svc.list_attribute_definitions(principal, ws)
+    return [AttributeDefinitionResponse.model_validate(r) for r in rows]
 
 
 @router.post("/product-categories", response_model=CategoryResponse, status_code=status.HTTP_201_CREATED)
